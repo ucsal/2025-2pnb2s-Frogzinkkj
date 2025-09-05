@@ -2,18 +2,21 @@ package br.com.mariojp.solid.srp;
 
 public class ReceiptService {
 	public String generate(Order order) {
-		double subtotal = order.getItems().stream().mapToDouble(i -> i.getUnitPrice() * i.getQuantity()).sum();
-		double tax = subtotal * 0.10; //Taxa 10 fixa :(
-		double total = subtotal + tax;
+		Double taxa = Double.parseDouble( System.getProperty("tax.rate") );
+
+		ReceiptFormatter receiptFormatter = new ReceiptFormatter();
+		TaxCalculator taxCalculator = new TaxCalculator(taxa);
 		StringBuilder sb = new StringBuilder(); //Formatando o Recibo
-		sb.append("=== RECIBO ===\n");
+
+		double subtotal = order.getItems().stream().mapToDouble(i -> i.getUnitPrice() * i.getQuantity()).sum();
+		double impostoCalculado = taxCalculator.Calculate(subtotal);
+		double total = impostoCalculado +subtotal;
+
 		for (var i : order.getItems()) {
 			sb.append(i.getName()).append(" x").append(i.getQuantity()).append(" = ").append(i.getUnitPrice() * i.getQuantity())
 					.append("\n");
 		}
-		sb.append("Subtotal: ").append(subtotal).append("\n");
-		sb.append("Tax: ").append(tax).append("\n");
-		sb.append("Total: ").append(total).append("\n");
-		return sb.toString();
+		return receiptFormatter.generate(sb.toString(),subtotal,impostoCalculado,total);
+
 	}
 }
